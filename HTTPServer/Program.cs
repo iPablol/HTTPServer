@@ -23,17 +23,16 @@ namespace HTTPServer
             try
             {
                 listener.Start();
-
                 using TcpClient handler = await listener.AcceptTcpClientAsync();
                 await using NetworkStream stream = handler.GetStream();
+                while (true)
+                {
+                    var buffer = new byte[1_024];
+                    int received = await stream.ReadAsync(buffer);
 
-                var message = $"📅 {DateTime.Now} 🕛";
-                var dateTimeBytes = Encoding.UTF8.GetBytes(message);
-                await stream.WriteAsync(dateTimeBytes);
-
-                Console.WriteLine($"Sent message: \"{message}\"");
-                // Sample output:
-                //     Sent message: "📅 8/22/2022 9:07:17 AM 🕛"
+                    string message = Encoding.UTF8.GetString(buffer, 0, received);
+                    Console.WriteLine($"Read message: \"{message}\"");
+                }
             }
             finally
             {
