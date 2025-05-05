@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 
@@ -15,6 +16,8 @@ internal class HTTPServer
 
 	public bool stop;
 
+	private string[] supportedVersions = { "HTTP/1.1" };
+
 	public HTTPServer(IPAddress address, int port)
 	{
 		endPoint = new(address, port);
@@ -23,10 +26,6 @@ internal class HTTPServer
 
 	public async void Run()
 	{
-
-		var ipEndPoint = new IPEndPoint(IPAddress.Loopback, 80);
-		TcpListener listener = new(ipEndPoint);
-
 		try
 		{
 			listener.Start();
@@ -35,7 +34,7 @@ internal class HTTPServer
 			{
 				if (listener.Pending())
 				{
-					HandleConnection(listener);
+					HandleConnection();
 				}
 			}
 		}
@@ -46,7 +45,7 @@ internal class HTTPServer
 		}
 	}
 
-	private async void HandleConnection(TcpListener listener)
+	private async void HandleConnection()
 	{
 		using TcpClient handler = await listener.AcceptTcpClientAsync();
 		await using NetworkStream stream = handler.GetStream();
@@ -59,7 +58,37 @@ internal class HTTPServer
 			$" {message}" +
 			$"-------------------------------");
 
-		await stream.WriteAsync(Encoding.UTF8.GetBytes($"Response to \"{message}\""));
+		try
+		{
+			var request = ParseRequest(message);
+			if (!supportedVersions.Contains(request.version)) throw HTTPResponse.WithCode(501);
+
+			await Respond(stream, HTTPResponse.WithCode(300), $"Response to {message}");
+		}
+		catch (HTTPResponse ex)
+		{
+			await Respond(stream, ex);
+			return;
+		}
+	}
+
+	private (string method, string target, string version, string[] headers, string body) ParseRequest(string request)
+	{
+		Regex regex = new ("(.*) (.*) (.*)\r\n(.*)\r\n(.*)");
+		if (regex.IsMatch(request))
+		{
+			var matches = regex.Match(request).Groups.Values.Select(x => x.Value).ToArray();
+			return (matches[1], matches[2], matches[3], matches[4].Split('\n'), matches[5]);
+		}
+		throw HTTPResponse.WithCode(400);
+	}
+
+	private ValueTask Respond(NetworkStream stream, HTTPResponse response, string body = "")
+	{
+		// Currently only supports 1.1
+		string version = supportedVersions[0];
+		string headers = "";
+		return stream.WriteAsync(Encoding.UTF8.GetBytes($"{version} {response.code} {response.message}\r\n{headers}\r\n{body}"));
 	}
 
 }
