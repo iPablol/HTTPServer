@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -12,21 +13,25 @@ internal class HTTPServer
 {
 	private IPEndPoint endPoint;
 
+	public string key = "";
+
 	private TcpListener listener;
 
 	public bool stop;
 
 	private string[] supportedVersions = { "HTTP/1.1" };
 
-	private readonly List<ServerEndPoint> endpoints =
-	[
-		new ServerEndPoint("/ping", Method.GET, (headers, body) => "pong")
-	];
+	private readonly List<ServerEndPoint> endpoints;
+	
 
 	public HTTPServer(IPAddress address, int port)
 	{
 		endPoint = new(address, port);
 		listener = new TcpListener(endPoint);
+		endpoints = 
+		[
+			new ServerEndPoint("/ping", Method.GET, (headers, body) => "pong", this)
+		];
 	}
 
 	public async void Run()
@@ -95,13 +100,13 @@ internal class HTTPServer
 		}
 	}
 
-	private (string method, string target, string version, string[] headers, string body) ParseRequest(string request)
+	private (string method, string target, string version, HTTPHeader[] headers, string body) ParseRequest(string request)
 	{
-		Regex regex = new ("(.*) (.*) (.*)\r\n(.*)\r\n(.*)");
+		Regex regex = new ("^(\\w+)\\s+([^\\s]+)\\s+(HTTP/1.1+)\\r\\n((?:[^\\r\\n]+\\r\\n)*?)\\r\\n(.*)");
 		if (regex.IsMatch(request))
 		{
 			var matches = regex.Match(request).Groups.Values.Select(x => x.Value).ToArray();
-			return (matches[1], matches[2], matches[3], matches[4].Split('\n'), matches[5]);
+			return (matches[1], matches[2], matches[3], matches[4].Split("\r\n", StringSplitOptions.RemoveEmptyEntries).Select(x => new HTTPHeader(x)).ToArray(), matches[5]);
 		}
 		throw HTTPResponse.WithCode(400);
 	}

@@ -13,6 +13,10 @@ string command = "";
 while (!quitCommands.Contains(command.ToLower()))
 {
 	command = Console.ReadLine();
+	if (command.StartsWith("key "))
+	{
+		server.key = command.Split(' ')[1];
+	}
 }
 
 server.stop = true;
