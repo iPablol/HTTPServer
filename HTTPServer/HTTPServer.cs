@@ -18,6 +18,11 @@ internal class HTTPServer
 
 	private string[] supportedVersions = { "HTTP/1.1" };
 
+	private readonly List<ServerEndPoint> endpoints =
+	[
+		new ServerEndPoint("/ping", Method.GET, (headers, body) => "pong")
+	];
+
 	public HTTPServer(IPAddress address, int port)
 	{
 		endPoint = new(address, port);
@@ -54,16 +59,34 @@ internal class HTTPServer
 
 		string message = Encoding.UTF8.GetString(buffer, 0, received);
 		Console.WriteLine($"Read message:\n" +
-			$"-------------------------------" +
-			$" {message}" +
-			$"-------------------------------");
+			$"-------------------------------\n" +
+			$" {message}\n" +
+			$"-------------------------------\n");
 
 		try
 		{
 			var request = ParseRequest(message);
 			if (!supportedVersions.Contains(request.version)) throw HTTPResponse.WithCode(501);
+			ServerEndPoint? endpoint = null;
+			try
+			{
+				endpoint = (from x in endpoints where x == request.target select x).First();
+			}
+			catch
+			{
+				throw HTTPResponse.WithCode(404);
+			}
+			if (endpoint != null)
+			{
+				Method method = Enum.Parse<Method>(request.method);
+				if (endpoint != method) throw HTTPResponse.WithCode(405);
+				await Respond(stream, HTTPResponse.WithCode(200), endpoint.HandleRequest(request.headers, request.body));
+			}
+			else
+			{
+				throw HTTPResponse.WithCode(404);
+			}
 
-			await Respond(stream, HTTPResponse.WithCode(300), $"Response to {message}");
 		}
 		catch (HTTPResponse ex)
 		{
@@ -91,5 +114,10 @@ internal class HTTPServer
 		return stream.WriteAsync(Encoding.UTF8.GetBytes($"{version} {response.code} {response.message}\r\n{headers}\r\n{body}"));
 	}
 
+}
+
+internal enum Method
+{
+	GET, POST, PUT, HEAD, DELETE
 }
 
