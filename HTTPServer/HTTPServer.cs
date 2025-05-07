@@ -60,7 +60,7 @@ internal class HTTPServer
 		string message = Encoding.UTF8.GetString(buffer, 0, received);
 		Console.WriteLine($"Read message:\n" +
 			$"-------------------------------\n" +
-			$" {message}\n" +
+			$"{message}\n" +
 			$"-------------------------------\n");
 
 		try

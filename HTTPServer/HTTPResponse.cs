@@ -12,7 +12,7 @@ internal class HTTPResponse(int code, string message) : Exception(message)
 
 	public static implicit operator string(HTTPResponse response) => $"{response.code} {response.message}";
 
-	public static HTTPResponse WithCode(int code) => All[code];
+	public static HTTPResponse WithCode(int code) => All[code] ?? All[500]; // Fallback to internal server error
 
 	// This was not typed by hand
 	public static readonly Dictionary<int, HTTPResponse> All = new()
