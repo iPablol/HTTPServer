@@ -30,7 +30,8 @@ internal class HTTPServer
 		listener = new TcpListener(endPoint);
 		endpoints = 
 		[
-			new ServerEndPoint("/ping", Method.GET, (headers, body) => "pong", this)
+			new ServerEndPoint("/ping", Method.GET, (headers, body) => "pong", this, false),
+			new ServerEndPoint("/secret", Method.GET, (headers, body) => "You found the key!", this, true)
 		];
 	}
 

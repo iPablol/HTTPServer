@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using static ServerEndPoint;
 
 
-internal class ServerEndPoint(string path, Method method, RequestHandler handler, HTTPServer server)
+internal class ServerEndPoint(string path, Method method, RequestHandler handler, HTTPServer server, bool requireKey = true)
 {
 	private string path = path;
 	private Method method = method;
@@ -14,7 +14,7 @@ internal class ServerEndPoint(string path, Method method, RequestHandler handler
 	public RequestHandler HandleRequest  { get; private set; } = (HTTPHeader[] headers, string body) =>
 	{
 		// Key is activated
-		if (server.key != "")
+		if (requireKey && server.key != "")
 		{
 			try
 			{
