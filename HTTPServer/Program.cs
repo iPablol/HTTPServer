@@ -7,7 +7,15 @@ string[] quitCommands =
 {
 	"quit", "q", "bye", "logout", "stop", "shutdown"
 };
-var server = new HTTPServer(IPAddress.Loopback, 80);
+
+int port = 80;
+do
+{
+	Console.WriteLine("Select a port to start the server on");
+}
+while (!int.TryParse(Console.ReadLine(), out port));
+
+var server = new HTTPServer(IPAddress.Loopback, port);
 new Task(server.Run).Start();
 string command = "";
 while (!quitCommands.Contains(command.ToLower()))
