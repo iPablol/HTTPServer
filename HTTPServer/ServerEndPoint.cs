@@ -11,7 +11,8 @@ internal class ServerEndPoint(string path, Method method, RequestHandler handler
 	private string path = path;
 	private Method method = method;
 
-	public RequestHandler HandleRequest  { get; private set; } = (HTTPHeader[] headers, string body) =>
+	// We don't need to support the HEAD nor OPTIONS method
+	public RequestHandler HandleRequest { get; private set; } = (HTTPHeader[] headers, string body = "") =>
 	{
 		// Key is active
 		if (requireKey && server.key != "")
@@ -30,7 +31,7 @@ internal class ServerEndPoint(string path, Method method, RequestHandler handler
 
 		return handler(headers, body);
 	};
-	public delegate (HTTPResponse response, string body) RequestHandler(HTTPHeader[] headers, string body);
+	public delegate (HTTPResponse response, string[] headers, string body) RequestHandler(HTTPHeader[] headers, string body = "");
 
 	public static implicit operator string(ServerEndPoint instance) => instance.path;
 	public static implicit operator Method(ServerEndPoint instance) => instance.method;

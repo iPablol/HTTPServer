@@ -30,8 +30,13 @@ internal class HTTPServer
 		listener = new TcpListener(endPoint);
 		endpoints = 
 		[
-			new ServerEndPoint("/ping", Method.GET, (headers, body) => (HTTPResponse.WithCode(200), "pong"), this, false),
-			new ServerEndPoint("/secret", Method.GET, (headers, body) => (HTTPResponse.WithCode(200), "You found the key!"), this, true)
+			new ServerEndPoint("/ping", Method.GET, (headers, body) => 
+			(HTTPResponse.WithCode(200), [HTTPHeader.ContentHeader(ContentHeader.text.plain)], "pong"), 
+			this, false),
+
+			new ServerEndPoint("/secret", Method.GET, (headers, body) => 
+			(HTTPResponse.WithCode(200), [HTTPHeader.ContentHeader(ContentHeader.text.plain)], "You found the key!"), 
+			this, true)
 		];
 	}
 
@@ -84,8 +89,8 @@ internal class HTTPServer
 				if (endpoint != method) throw HTTPResponse.WithCode(405);
 				try
 				{
-					(HTTPResponse response, string body) = endpoint.HandleRequest(request.headers, request.body);
-					await Respond(stream, response, body);
+					(HTTPResponse response, string[] headers, string body) = endpoint.HandleRequest(request.headers, request.body);
+					await Respond(stream, response, headers, body);
 				}
 				catch (HTTPResponse)
 				{
@@ -105,7 +110,7 @@ internal class HTTPServer
 		}
 		catch (HTTPResponse ex)
 		{
-			await Respond(stream, ex);
+			await Respond(stream, ex, []);
 			return;
 		}
 	}
@@ -121,12 +126,11 @@ internal class HTTPServer
 		throw HTTPResponse.WithCode(400);
 	}
 
-	private ValueTask Respond(NetworkStream stream, HTTPResponse response, string body = "")
+	private ValueTask Respond(NetworkStream stream, HTTPResponse response, string[] headers, string body = "")
 	{
 		// Currently only supports 1.1
 		string version = supportedVersions[0];
-		string headers = "";
-		return stream.WriteAsync(Encoding.UTF8.GetBytes($"{version} {response.code} {response.message}\r\n{headers}\r\n{body}"));
+		return stream.WriteAsync(Encoding.UTF8.GetBytes($"{version} {response.code} {response.message}\r\n{String.Join("\r\n", headers)}\r\n{body}"));
 	}
 
 }
