@@ -30,8 +30,8 @@ internal class HTTPServer
 		listener = new TcpListener(endPoint);
 		endpoints = 
 		[
-			new ServerEndPoint("/ping", Method.GET, (headers, body) => "pong", this, false),
-			new ServerEndPoint("/secret", Method.GET, (headers, body) => "You found the key!", this, true)
+			new ServerEndPoint("/ping", Method.GET, (headers, body) => (HTTPResponse.WithCode(200), "pong"), this, false),
+			new ServerEndPoint("/secret", Method.GET, (headers, body) => (HTTPResponse.WithCode(200), "You found the key!"), this, true)
 		];
 	}
 
@@ -74,19 +74,28 @@ internal class HTTPServer
 			var request = ParseRequest(message);
 			if (!supportedVersions.Contains(request.version)) throw HTTPResponse.WithCode(501);
 			ServerEndPoint? endpoint = null;
-			try
-			{
-				endpoint = (from x in endpoints where x == request.target select x).First();
-			}
-			catch
-			{
-				throw HTTPResponse.WithCode(404);
-			}
+
+			// This approach does not support polymorphism of endpoints
+			endpoint = (from x in endpoints where x == request.target select x).FirstOrDefault() ?? throw HTTPResponse.WithCode(404);
+
 			if (endpoint != null)
 			{
 				Method method = Enum.Parse<Method>(request.method);
 				if (endpoint != method) throw HTTPResponse.WithCode(405);
-				await Respond(stream, HTTPResponse.WithCode(200), endpoint.HandleRequest(request.headers, request.body));
+				try
+				{
+					(HTTPResponse response, string body) = endpoint.HandleRequest(request.headers, request.body);
+					await Respond(stream, response, body);
+				}
+				catch (HTTPResponse)
+				{
+					// Don't override responses with 500
+					throw;
+				}
+				catch
+				{
+					throw HTTPResponse.WithCode(500);
+				}
 			}
 			else
 			{
