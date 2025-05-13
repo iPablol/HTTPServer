@@ -31,11 +31,11 @@ internal class HTTPServer
 		endpoints = 
 		[
 			new ServerEndPoint("/ping", Method.GET, (headers, body) => 
-			(HTTPResponse.WithCode(200), [HTTPHeader.ContentHeader(ContentHeader.text.plain)], "pong"), 
+			(HTTPResponse.WithCode(200), [HTTPHeader.ContentType(ContentHeader.text.plain)], "pong"), 
 			this, false),
 
 			new ServerEndPoint("/secret", Method.GET, (headers, body) => 
-			(HTTPResponse.WithCode(200), [HTTPHeader.ContentHeader(ContentHeader.text.plain)], "You found the key!"), 
+			(HTTPResponse.WithCode(200), [HTTPHeader.ContentType(ContentHeader.text.plain)], "You found the key!"), 
 			this, true)
 		];
 	}
@@ -130,7 +130,8 @@ internal class HTTPServer
 	{
 		// Currently only supports 1.1
 		string version = supportedVersions[0];
-		return stream.WriteAsync(Encoding.UTF8.GetBytes($"{version} {response.code} {response.message}\r\n{String.Join("\r\n", headers)}\r\n{body}"));
+		headers = headers.Append(HTTPHeader.ServerInfoHeader()).ToArray();
+		return stream.WriteAsync(Encoding.UTF8.GetBytes($"{version} {response.code} {response.message}\r\n{String.Join("\r\n", headers)}\r\n\r\n{body}"));
 	}
 
 }

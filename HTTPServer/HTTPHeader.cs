@@ -21,7 +21,7 @@ internal record struct HTTPHeader
 	public static implicit operator HTTPHeader(string header) => new (header);
 
 	// This is for helping construct headers
-	public static string ContentHeader<T>(T type) where T : Enum
+	public static string ContentType<T>(T type) where T : Enum
 	{
 		if (typeof(T).DeclaringType != typeof(ContentHeader))
 		{
@@ -29,6 +29,10 @@ internal record struct HTTPHeader
 		}
 		return $"Content-Type: {typeof(T).Name}/{typeof(T).GetEnumName(type)}";
 	}
+
+	public static string ContentLength(string body) => "Content-Length: " + Encoding.UTF8.GetBytes(body).Length;
+
+	public static string ServerInfoHeader() => $"Server: custom\r\nDate: {DateTime.UtcNow.ToString("r")}";
 }
 
 internal static partial class ContentHeader
