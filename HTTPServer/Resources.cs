@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 internal class Resources
 {
-	private List<Resource> resources = [];
+	private List<Resource> resources = [new ("Primero"), new ("Segundo")];
 
 	public List<Resource> Get() => resources;
 
