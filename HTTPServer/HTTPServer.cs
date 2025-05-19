@@ -21,7 +21,7 @@ internal class HTTPServer
 
 	public bool stop;
 
-	private string[] supportedVersions = { "HTTP/1.1" };
+	private string[] supportedVersions = ["HTTP/1.1"];
 
 	private readonly List<ServerEndPoint> endpoints;
 
@@ -44,7 +44,21 @@ internal class HTTPServer
 
 			new ServerEndPoint("/get", Method.GET, (headers, body) =>
 			(HTTPResponse.WithCode(200), [HTTPHeader.ContentType(ContentHeader.application.json)], JsonSerializer.Serialize(resources.Get())),
-			this)
+			this),
+
+			new ServerEndPoint("/add", Method.POST, (headers, body) =>
+			{
+				Resource? resource = JsonSerializer.Deserialize<Resource>(body);
+				if (resource is Resource r)
+				{
+					resources.Add(r);
+					throw HTTPResponse.WithCode(201);
+				}
+				else
+				{
+					throw HTTPResponse.WithCode(400);
+				}
+			}, this)
 		];
 	}
 
