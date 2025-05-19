@@ -58,6 +58,25 @@ internal class HTTPServer
 				{
 					throw HTTPResponse.WithCode(400);
 				}
+			}, this),
+
+			new ServerEndPoint("/remove", Method.DELETE, (headers, body) =>
+			{
+				try
+				{
+					// Only by position for now
+					int pos = int.Parse(body);
+					if (pos < 0 || pos > resources.Get().Count)
+					{
+						throw HTTPResponse.WithCode(400);
+					}
+					resources.Remove(pos);
+					throw HTTPResponse.WithCode(200);
+				}
+				catch
+				{
+					throw HTTPResponse.WithCode(400);
+				}
 			}, this)
 		];
 	}

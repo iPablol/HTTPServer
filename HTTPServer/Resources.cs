@@ -14,6 +14,7 @@ internal class Resources
 	public void Add(Resource resource) => resources.Add(resource);
 
 	public bool Remove(Resource resource) => resources.Remove(resource);
+	public void Remove(int position) => resources.RemoveAt(position);
 }
 
 internal record Resource(string Name);
