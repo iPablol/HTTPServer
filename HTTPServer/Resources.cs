@@ -16,5 +16,5 @@ internal class Resources
 	public bool Remove(Resource resource) => resources.Remove(resource);
 }
 
-internal record Resource(string name);
+internal record Resource(string Name);
 

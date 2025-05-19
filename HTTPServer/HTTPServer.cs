@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -38,7 +40,11 @@ internal class HTTPServer
 
 			new ServerEndPoint("/secret", Method.GET, (headers, body) => 
 			(HTTPResponse.WithCode(200), [HTTPHeader.ContentType(ContentHeader.text.plain)], "You found the key!"), 
-			this, true)
+			this),
+
+			new ServerEndPoint("/get", Method.GET, (headers, body) =>
+			(HTTPResponse.WithCode(200), [HTTPHeader.ContentType(ContentHeader.application.json)], JsonSerializer.Serialize(resources.Get())),
+			this)
 		];
 	}
 
