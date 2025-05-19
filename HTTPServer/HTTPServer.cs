@@ -22,6 +22,8 @@ internal class HTTPServer
 	private string[] supportedVersions = { "HTTP/1.1" };
 
 	private readonly List<ServerEndPoint> endpoints;
+
+	private Resources resources = new();
 	
 
 	public HTTPServer(IPAddress address, int port)
