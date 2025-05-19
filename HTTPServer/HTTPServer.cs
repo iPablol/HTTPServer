@@ -85,7 +85,7 @@ internal class HTTPServer
 		try
 		{
 			var request = ParseRequest(message);
-			if (!supportedVersions.Contains(request.version)) throw HTTPResponse.WithCode(501);
+			if (!supportedVersions.Contains(request.version)) throw HTTPResponse.WithCode(505);
 			ServerEndPoint? endpoint = null;
 
 			// This approach does not support polymorphism of endpoints
