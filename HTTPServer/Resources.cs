@@ -13,6 +13,8 @@ internal class Resources
 
 	public void Add(Resource resource) => resources.Add(resource);
 
+	public void Edit(int pos, Resource resource) => resources[pos] = resource;
+
 	public bool Remove(Resource resource) => resources.Remove(resource);
 	public void Remove(int position) => resources.RemoveAt(position);
 }

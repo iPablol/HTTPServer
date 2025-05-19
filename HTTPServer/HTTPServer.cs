@@ -75,6 +75,35 @@ internal class HTTPServer
 				resources.Remove(pos);
 				throw HTTPResponse.WithCode(200);
 
+			}, this),
+
+			new ServerEndPoint("/edit", Method.PUT, (headers, body) =>
+			{
+				int pos = -1;
+				try 
+				{
+					pos = int.Parse(headers.Where(x => x.key == "position").First().value);
+				}
+				catch { throw HTTPResponse.WithCode(400); }
+				if (pos < 0)
+				{
+					throw HTTPResponse.WithCode(400);
+				}
+				if (pos > resources.Get().Count)
+				{
+					throw HTTPResponse.WithCode(404);
+				}
+				Resource? resource = JsonSerializer.Deserialize<Resource>(body);
+				if (resource is Resource r)
+				{
+					resources.Edit(pos, r);
+					throw HTTPResponse.WithCode(201);
+				}
+				else
+				{
+					throw HTTPResponse.WithCode(400);
+				}
+				throw HTTPResponse.WithCode(200);
 			}, this)
 		];
 	}
