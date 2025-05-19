@@ -7,9 +7,13 @@ using System.Threading.Tasks;
 
 internal class Resources
 {
-	private List<Resources> resources = [];
+	private List<Resource> resources = [];
 
-	public List<Resources> Get() => resources;
+	public List<Resource> Get() => resources;
+
+	public void Add(Resource resource) => resources.Add(resource);
+
+	public bool Remove(Resource resource) => resources.Remove(resource);
 }
 
 internal record Resource(string name);
