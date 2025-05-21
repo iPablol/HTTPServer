@@ -80,7 +80,7 @@ internal class HTTPServer
 			new ServerEndPoint("/edit", Method.PUT, (headers, body) =>
 			{
 				int pos = -1;
-				try 
+				try
 				{
 					pos = int.Parse(headers.Where(x => x.key == "position").First().value);
 				}
@@ -93,17 +93,28 @@ internal class HTTPServer
 				{
 					throw HTTPResponse.WithCode(404);
 				}
-				Resource? resource = JsonSerializer.Deserialize<Resource>(body);
-				if (resource is Resource r)
+				try 
 				{
-					resources.Edit(pos, r);
-					throw HTTPResponse.WithCode(201);
+					Resource? resource = JsonSerializer.Deserialize<Resource>(body);
+					if (resource is Resource r)
+					{
+						resources.Edit(pos, r);
+						throw HTTPResponse.WithCode(201);
+					}
+					else
+					{
+						throw HTTPResponse.WithCode(400);
+					}
+					throw HTTPResponse.WithCode(200);
+					}
+				catch (HTTPResponse response)
+				{
+					throw response;
 				}
-				else
+				catch
 				{
 					throw HTTPResponse.WithCode(400);
 				}
-				throw HTTPResponse.WithCode(200);
 			}, this)
 		];
 	}
